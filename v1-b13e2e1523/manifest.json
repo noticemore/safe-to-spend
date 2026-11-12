@@ -1,0 +1,25 @@
+{
+  "name": "Safe to Spend, an ADHD budget planner",
+  "short_name": "Safe to Spend",
+  "description": "See what is safe to spend today. Nothing else to work out.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F1F4F3",
+  "theme_color": "#0F6B63",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
