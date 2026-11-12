@@ -248,15 +248,23 @@ body.navopen{overflow:hidden}
    behind them, nothing naming the page, and nothing between them and the top
    of the screen. It is a bar now: its own surface, edge to edge, a hairline
    under it, real room above it, and it stays put as the page scrolls.
-   Three lines. The top one is about the app: where you are, the theme, the
-   menu. Then the one thing you came to do, full width. Then the tools.
-   Log a spend and the tools were meant to share a line, and at no phone width
-   do they fit: 125px of button, 239px of tools and a gap need 374px, and a
-   390px phone has 358px to give. Below 375px it is not close. So the button
-   is given the line rather than left stranded half way along one, which is
-   what it looked like, and it gets the big tap target the primary action
-   should have had anyway. It is the same full-width button the sidebar
-   shows from 720px up. */
+   Two lines, from 375px up. The top one is about the app: where you are, the
+   theme, print, the menu. The bottom one is about the work: log a spend, the
+   focus switch, search and undo.
+   It did not fit and had been wrapping to three. Measured at 390px, where the
+   bar has 358px to give: the button is 95px of text in 28px of padding, the
+   focus switch 101, four 38px buttons, and the gaps 34. 372, so 14px over, and
+   the tools dropped to a line of their own leaving the button stranded half
+   way along a row of nothing.
+   Squeezing the padding bought 21px and made the row look cramped for it.
+   Moving **print** to the top line gives back 44 and costs nothing: the top
+   line had the room, printing is about the planner rather than about the
+   money, and every padding went back to what it was. 328 of 358, and it holds
+   at 375 as well.
+   Below 375 it cannot be done without taking the word off the focus switch or
+   dropping a tap target under 38px, and neither is worth it, so there the
+   button takes the whole line. That is deliberate rather than stranded, and it
+   is the same full-width button the sidebar shows from 720px up. */
 /* Not sticky. Two lines is a lot of a phone screen to give up for good, and
    nothing in the bar is wanted mid-page: logging a spend starts from the top
    of Today, and the menu is how you leave the page, not how you read it. */
@@ -272,13 +280,28 @@ body.navopen{overflow:hidden}
   flex-wrap:wrap}
 /* Grows into whatever the Demo badge beside it does not take. A plain
    width:100% would have pushed that badge off the row in the demo build. */
-.topleft .logbtn{flex:1 1 auto}
+.topleft .logbtn{flex:1 1 auto;padding-left:20px;padding-right:20px}
+/* From 375px the button and the tools fit on one line together, so it stops
+   taking the whole line. 360px misses it by a hair, measured: 328px of content
+   into 328px of bar, which wraps. The demo build carries a Demo badge in here
+   as well and is 70px wider; there the tools wrap below, and the button and the
+   badge keep each other company rather than one of them sitting alone. */
+@media (min-width:375px){
+  .topleft{flex:none}
+  .topleft .logbtn{flex:none}
+}
 .topwrap{flex:1 1 auto}
 /* The currency picker is the widest control in the bar and the one nobody
    touches twice. On a phone it lives in Settings, with the rest of the setup,
    so the tools line fits on one line with room to breathe. */
 #topbar .selwrap{display:none}
 .navbtn{flex:none}
+/* The tools-line copy of Print. Hidden on a phone, where the top line carries
+   it instead; the pair is explained in topbar.js. Scoped with #topbar because
+   .topbtn sets display:inline-flex further down this file, and at the same
+   specificity the later rule wins, which left the hidden one on screen and the
+   row wrapping exactly as before. */
+#topbar .nophone{display:none}
 .demotag{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
   color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:5px 10px}
 /* "Saved" comes and goes in under two seconds. In the bar it was one more
@@ -352,6 +375,7 @@ body.navopen{overflow:hidden}
   /* A group heading must not read as another page. Smaller, wider spaced, no
      icon, and sitting on a hairline. */
   .onlyphone{display:none}
+  #topbar .nophone{display:inline-flex}
   .navitem{padding:9px 12px}
   .navitem:hover:not(.on){background:var(--soft);color:var(--teal)}
   .navfoot:hover{background:none;color:var(--ink)}
@@ -3544,7 +3568,14 @@ function renderTopbar(app) {
     el('span.focusw', null, el('i'))
   ]);
 
-  const printer = el('button.topbtn.printbtn', {
+  /* Two of these are built and the stylesheet shows one. On a phone it sits on
+     the top line, with the theme switch, because the tools line cannot hold it
+     as well as the button and the focus switch. From tablet width up the bar
+     is one row with room to spare, so it stays where it has always been. A
+     flex item cannot be moved into another flex container by CSS, and the
+     hidden one is display:none, so it is not in the page for a screen reader
+     either. */
+  const printBtn = (cls) => el('button.topbtn.printbtn.' + cls, {
     type: 'button', title: 'Print this page', 'aria-label': 'Print this page',
     html: PRINT, onclick: () => window.print()
   });
@@ -3579,7 +3610,7 @@ function renderTopbar(app) {
   const title = el('div.topttl', { text: CONFIG.shortName || CONFIG.name });
 
   bar.appendChild(title);
-  bar.appendChild(el('div.topctrl', null, [toggle, burger]));
+  bar.appendChild(el('div.topctrl', null, [printBtn('onlyphone'), toggle, burger]));
   /* A forced line break. The two lines hold different things in different
      widths, so they must not share a grid's columns: a wide tools line used to
      squeeze the name above it until it was cut off. */
@@ -3589,7 +3620,8 @@ function renderTopbar(app) {
      nothing is worse than no control. */
   const onToday = app.screen === 'today';
   bar.appendChild(el('div.topwrap', null,
-    [onToday ? focus : null, printer, search, undo, el('div.selwrap', null, sel)]));
+    [onToday ? focus : null, printBtn('nophone'), search, undo,
+     el('div.selwrap', null, sel)]));
 }
 
 /* The engine's own job: hold the state, hand it to a screen, and put the screen
@@ -5014,7 +5046,7 @@ const calendarScreen = {
           'Logged in this month: <b>' + app.money(monthSpent) + '</b>' }),
         /* Only ever shown where the dots are, which is the narrow layout. */
         el('p.foot.calkey', { style: 'margin-top:6px', text:
-          'A grey dot means a bill is due that day. An amber dot means you logged ' +
+          'A gray dot means a bill is due that day. An amber dot means you logged ' +
           'money that day. Tap a day to see both in full.' })
       ]),
       app.day ? dayPanel(app, parseISO(app.day)) : null
@@ -6595,7 +6627,7 @@ const insightsScreen = {
       .sort((a, c) => c.value - a.value);
 
     return el('div.insights', null, [
-      screenTop(app, 'Insights', 'Where your money went. No judgement.'),
+      screenTop(app, 'Insights', 'Where your money went. No judgment.'),
       el('div.card.periodbar', null, [
         el('button.btn', { type: 'button', text: '\u2039', 'aria-label': 'Earlier pay period',
           disabled: atOldest ? true : null,
