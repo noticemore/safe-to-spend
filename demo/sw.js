@@ -2,7 +2,7 @@
    worker cannot live inside the single HTML file it is caching.
 
    Bump CACHE on every upload, or returning buyers keep the old version. */
-const CACHE = 'guloona-adhd-budget-planner-demo-v5';
+const CACHE = 'guloona-adhd-budget-planner-demo-v6';
 
 /* Nothing is named here on purpose. Listing files to precache means renaming the
    HTML breaks installation silently, so pages are cached as they are fetched. */
